@@ -5,7 +5,6 @@ var app = express();
 const fetch = require('node-fetch');
 const tribeTokenAbi = require('./TribeTokenContract');
 const keys = require('./config/keys');
-
 const Web3 = require('web3');
 let web3 = new Web3(new Web3.providers.HttpProvider('https://rinkeby.infura.io/v3/' + keys.infura));
 
@@ -73,16 +72,21 @@ client.on('guildMemberAdd', member => {
   // Send the message to a designated channel on a server:
   const channel = member.guild.channels.find(ch => ch.name === 'member-log');
   // Do nothing if the channel wasn't found on this server
-
-  // let memberRole = member.guild.roles.find('name', 'Member');
-  // member.addRole(memberRole);
-
   if (!channel) return;
   // Send the message, mentioning the member
   channel.send(`Welcome to the server, ${member}`);
 });
 
 client.on('message', async message => {
+  if (message.content === 'ping') {
+    message.reply('Pong!');
+  }
+
+  if (message.content === 'what is my avatar') {
+    // Send the user's avatar URL
+    message.reply(message.author.avatarURL);
+  }
+
   if (message.content.includes('set contract:')) {
     let msg = message.content;
     contractAddress = msg.split('set contract:')[1];
@@ -105,87 +109,8 @@ client.on('message', async message => {
     message.reply('contract has been');
   }
 
-  if (message.content == 'give role') {
-    let perm = new Discord.Permissions(_member, permissions);
-    console.log(perm);
-    message.reply('set contract');
-  }
-
-  // if (message.content.includes('create channel:')) {
-  //   var server = message.guild;
-
-  //   let msg = message.content;
-  //   channelName = msg.split('create channel:')[1];
-
-  //   // console.log({ server });
-  //   // console.log({ channelName });
-  //   try {
-  //     // let channel = await server.createChannel(channelName, 'text');
-  //     let channel = await addChannel(message, [], channelName);
-
-  //     //add permissions
-  //     console.log('channel id', channel.id);
-  //     console.log(channel);
-  //     //invite users?
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-
-  //   message.reply('created channel');
-  // }
-
   if (message.content == 'show contract address') {
     message.reply(contractAddress);
-  }
-
-  if (message.content.includes('get coins from:')) {
-    tribeTokenContract = new web3.eth.Contract(tribeTokenAbi, '0xe6702325e9cc7ccb2c36b22d71b40059e5cf6326');
-
-    let username = message.content.split('get coins from:')[1];
-    let array;
-    try {
-      array = await tribeTokenContract.methods.getTokenArrayFromName(username).call();
-    } catch (err) {
-      console.log('bad', err);
-    }
-    let coinInfo = array.map(async coin => {
-      item = await tribeTokenContract.methods.tokenURI(coin).call();
-      return item;
-    });
-    coinInfo = await Promise.all(coinInfo);
-    console.log(coinInfo);
-
-    let tierCount = await tribeTokenContract.methods.getTierCount().call();
-    let Tiers = [];
-    for (var i = 0; i < tierCount; i++) {
-      let Tier = await tribeTokenContract.methods.getTier(i).call();
-      Tiers.push(Tier[0]);
-    }
-    // console.log(TiersP);
-
-    let tier = coinInfo[0].split('/')[3];
-
-    console.log('tier', tier);
-
-    //subscribe to
-    let subbedTier = Tiers[tier];
-    console.log(subbedTier);
-    subbedTier += '-access';
-    console.log(subbedTier);
-
-    console.log(message.guild.roles);
-    await message.member.addRole(message.guild.roles.find(r => r.name == subbedTier));
-
-    message.reply(coinInfo);
-  }
-
-  if (message.content === 'ping') {
-    message.reply('Pong!');
-  }
-
-  if (message.content === 'what is my avatar') {
-    // Send the user's avatar URL
-    message.reply(message.author.avatarURL);
   }
 
   if (message.content.includes('add member to channel:')) {
@@ -199,39 +124,41 @@ client.on('message', async message => {
     await member.addRole(message.guild.roles.find(r => r.name == channel));
   }
 
-  // if (message.content == 'join') {
-  //   let memberRole = await message.member.guild.roles.find(() => {
-  //     'Member';
-  //   });
+  if (message.content.includes('get coins:')) {
+    tribeTokenContract = new web3.eth.Contract(tribeTokenAbi, tribeTokenContract);
 
-  //   let role = await message.member.guild.createRole({
-  //     name: 'new',
-  //     color: 'blue',
-  //     permissions: ['READ_MESSAGES', 'READ_MESSAGE_HISTORY', 'SEND_MESSAGES']
-  //   });
+    let username = message.content.split('get coins:')[1];
+    let array;
+    try {
+      array = await tribeTokenContract.methods.getTokenArrayFromName(username).call();
+    } catch (err) {
+      console.log('bad', err);
+    }
+    let coinInfo = array.map(async coin => {
+      item = await tribeTokenContract.methods.tokenURI(coin).call();
+      return item;
+    });
+    coinInfo = await Promise.all(coinInfo);
+    // console.log(coinInfo);
 
-  //   console.log(role.hasPermission('SPEAK'));
+    let tierCount = await tribeTokenContract.methods.getTierCount().call();
+    let Tiers = [];
+    for (var i = 0; i < tierCount; i++) {
+      let Tier = await tribeTokenContract.methods.getTier(i).call();
+      Tiers.push(Tier[0]);
+    }
 
-  //   // console.log(message.channel.rolePermissions(role));
+    let tier = coinInfo[0].split('/')[3];
 
-  //   await message.member.addRole(role);
-  // }
+    //subscribe
+    let subbedTier = Tiers[tier];
 
-  // if (message.content == 'create channel') {
-  //   let memberRole = await message.member.guild.roles.find(() => {
-  //     'Member';
-  //   });
+    subbedTier += '-access';
 
-  //   let role = await message.member.guild.createRole({
-  //     name: 'new',
-  //     color: 'blue',
-  //     permissions: ['READ_MESSAGES', 'READ_MESSAGE_HISTORY', 'SEND_MESSAGES']
-  //   });
+    await message.member.addRole(message.guild.roles.find(r => r.name == subbedTier));
 
-  //   console.log(role.hasPermission('SPEAK'));
-
-  //   await message.member.addRole(role);
-  // }
+    message.reply(coinInfo);
+  }
 });
 
-client.login('NTA4MDU5OTk5ODE0Mjg3MzYw.Dr6Nyg.D7uvILUYwiY80RhwPFpXx0QgVx0');
+client.login(keys.discordSec);
