@@ -33,9 +33,7 @@ async function addChannel(message, args, eventName) {
   await message.member.addRole(role, permsName);
 
   let channel = await server.createChannel(eventName, 'text'); // Create the actual channel.
-
   // await channel.setParent('427382662240534535'); // Move the channel to the current message's parent category.
-
   await channel.overwritePermissions(message.guild.roles.find('name', '@everyone'), {
     // Disallow Everyone to see, join, invite, or speak
     CREATE_INSTANT_INVITE: false,
