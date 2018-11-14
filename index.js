@@ -104,7 +104,7 @@ client.on('message', async message => {
       addChannel(message, [], t);
     });
 
-    message.reply('contract has been');
+    message.reply('contract has been set 👍🏼');
   }
 
   if (message.content == 'show contract address') {
@@ -123,12 +123,13 @@ client.on('message', async message => {
   }
 
   if (message.content.includes('get coins:')) {
-    tribeTokenContract = new web3.eth.Contract(tribeTokenAbi, tribeTokenContract);
+    tribeTokenContract = new web3.eth.Contract(tribeTokenAbi, contractAddress);
 
     let username = message.content.split('get coins:')[1];
     let array;
     try {
       array = await tribeTokenContract.methods.getTokenArrayFromName(username).call();
+      console.log({ array });
     } catch (err) {
       console.log('bad', err);
     }
