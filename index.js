@@ -76,6 +76,45 @@ client.on('guildMemberAdd', member => {
 });
 
 client.on('message', async message => {
+
+  const postersData = {
+    username: message.author.username,
+    discriminator: message.author.discriminator,
+    avatar: message.author.avatar,
+    id: message.author.id,
+  }
+
+  const guildData = {
+    name: message.guild.name,
+    id: message.guild.id,
+  }
+
+  // console.log('guild ===', message.guild.name)
+
+  //NOTE: For if a user uploads an image
+  if ((message.attachments).array()[0]) {
+    const Attachment = (message.attachments).array();
+    const link = Attachment[0].url;
+    // console.log('HERE =====', link);
+  }
+
+  //NOTE: For if a user pastes a link to an image, give etc. Currently ONLY works for Imgur (easy to change to reddit etc.)
+  //https://i.imgur.com/XKPjzZz.gifv  https://imgur.com/gallery/eFHlaQG
+  // if (message.content.includes('imgur.com'||'reddit.com')) { //if it contains an invite link
+  //   var domainIndex = message.content.indexOf("imgur");
+  //   var theUrl = message.content.slice(domainIndex, domainIndex + 25);
+  //   console.log('the link posted was: ', theUrl)
+  // }
+
+  if (message.embeds[0]) {
+    const mediaLink = message.embeds[0].url;
+    console.log('media ===', mediaLink)
+    //save to DB
+  }
+
+  //https://i.redd.it/vr994idtz5b21.jpg https://i.redd.it/1q90uhb5r5b21.jpg
+
+
   if (message.content === 'ping') {
     message.reply('Pong!');
   }
@@ -83,6 +122,7 @@ client.on('message', async message => {
   if (message.content === 'what is my avatar') {
     // Send the user's avatar URL
     message.reply(message.author.avatarURL);
+    // message.send
   }
 
   if (message.content.includes('set contract:')) {
