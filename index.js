@@ -8,6 +8,19 @@ const keys = require('./config/keys');
 const Web3 = require('web3');
 let web3 = new Web3(new Web3.providers.HttpProvider('https://rinkeby.infura.io/v3/' + keys.infura));
 
+const algoliasearch = require('algoliasearch');
+// const client = algoliasearch(keys.algoliaAppId, keys.algoliaAdminKey);
+// const postIndex = client.initIndex('Post010819');
+require('./models/Post');
+const mongoose = require('mongoose');
+const Post = mongoose.model('Post');
+
+mongoose.Promise = global.Promise;
+mongoose.connect(
+  keys.mongoURI,
+  { useNewUrlParser: true }
+);
+
 app.get('/', function(req, res) {
   res.send('hello world');
 });
@@ -76,6 +89,75 @@ client.on('guildMemberAdd', member => {
 });
 
 client.on('message', async message => {
+
+  const postersData = {
+    username: message.author.username,
+    discriminator: message.author.discriminator,
+    avatar: message.author.avatar,
+    id: message.author.id,
+  }
+
+  const guildData = {
+    name: message.guild.name,
+    id: message.guild.id,
+  }
+
+  //NOTE: For if a user uploads an image
+  if ((message.attachments).array()[0]) {
+
+    const attachment = (message.attachments).array();
+    const link = attachment[0].url;
+    const fetchedPost = await Post.findOne({
+      linkUUID: 'b7762018'
+    });
+    console.log('Post ----', fetchedPost)
+
+
+    const post = new Post({
+      title: "Legend Of the Five Rings - Update 4",
+      description: "Description thingy",
+      media: "5bd7abf602d5491325aca485/0eb339c0-dc19-11e8-9b93-93df198b4ee8.png",
+      author: "pancho",
+      authorAddress: "",
+      type: "request",
+      walletAddress: "",
+      linkTitle: "lesadfds_of_the_five_rings_-_update_4",
+      linkUUID: "b7862018",
+      free: true,
+      request: false,
+      tribeLink: "Fantasy_Flight_Games",
+      tribeName: "Fantasy Flight Games",
+      tribeId: "5bd7ca514f43101435fbe649",
+      selectedSubmission: null,
+      NSFW: false,
+      sticky: false,
+    });
+
+    //Add tribe to Algolia
+    // postIndex.addObjects(post);
+
+    // try {
+    //   let updatedPost = await post.save();
+    //   // await Tribe.update({ _id: tribeId }, { $push: { posts: updatedPost._id } });
+    //   console.log('IT POSTED :D ==', updatedPost);
+    //   // res.send(post);
+    // } catch (err) {
+    //   console.log('errored saving ====', { err });
+    //   // res.send(400, err);
+    // }
+    
+  }
+
+  //NOTE: For if a user pastes a link with an embeded image
+  if (message.embeds[0]) {
+    const mediaLink = message.embeds[0].url;
+    console.log('media ===', mediaLink)
+    //save to DB
+  }
+
+
+
+
   if (message.content === 'ping') {
     message.reply('Pong!');
   }
@@ -83,6 +165,7 @@ client.on('message', async message => {
   if (message.content === 'what is my avatar') {
     // Send the user's avatar URL
     message.reply(message.author.avatarURL);
+    // message.send
   }
 
   if (message.content.includes('set contract:')) {
